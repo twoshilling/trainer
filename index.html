@@ -297,7 +297,7 @@ body.tts .hear{display:inline-flex}
 
   <div class="cards" id="cards" hidden>
     <section>
-      <h2>Six checks before you speak</h2>
+      <h2>Seven checks before you speak</h2>
       <p>These are the slips that come up most. Every conversation here sets them for you on purpose.</p>
       <ol>
         <li><b>Who is doing it?</b> One man: <i>maiñ kardaa aañ</i>. We or they: <i>karde aañ</i>. A woman: <i>kardii</i>.</li>
@@ -305,6 +305,7 @@ body.tts .hear{display:inline-flex}
         <li><b>Does it come to you?</b> Hunger, wanting, knowing and feelings start with <i>mainuñ</i>. Things you do start with <i>maiñ</i>.</li>
         <li><b>Who are you talking to?</b> Elders get <i>tusiiñ</i>, and the verb ends in <i>-o</i>. Cousins get <i>tuuñ</i> and a bare verb.</li>
         <li><b>Where is the little word?</b> After the noun, never before: <i>London bich</i>, <i>kamm te</i>, <i>mere toñ</i>. And <i>meraa</i> bends to <i>mere</i> in front of it.</li>
+        <li><b>Is it "I have"?</b> Punjabi keeps things with you: <i>mere koḷ paise haige</i>. There is no word for "have".</li>
         <li><b>Is it the past?</b> "Ate" and "did" match the thing, and the doer takes <i>ne</i>: <i>Jassi ne samose khaadhe</i>. "Went" and "came" match the person, with no <i>ne</i>.</li>
       </ol>
     </section>
@@ -331,6 +332,8 @@ body.tts .hear{display:inline-flex}
           <tr><td>aapaañ</td><td>asiiñ</td><td>we (you included)</td></tr>
           <tr><td>aalii</td><td>vaalii</td><td>the one with</td></tr>
           <tr><td>biih</td><td>viih</td><td>twenty</td></tr>
+          <tr><td>sabere</td><td>savere</td><td>in the morning</td></tr>
+          <tr><td>badhaaiiaañ</td><td>vadhaaiiaañ</td><td>congratulations</td></tr>
           <tr><td>lagguu</td><td>laggegaa</td><td>it will take</td></tr>
           <tr><td>aauuñgaa</td><td>aavaañgaa</td><td>I will come</td></tr>
           <tr><td>sigaa, sigii</td><td>sii</td><td>was (in some families)</td></tr>
@@ -344,7 +347,7 @@ body.tts .hear{display:inline-flex}
         <dt>ñ</dt><dd>The vowel before it goes through the nose: maiñ, haañ.</dd>
         <dt>ṭ ḍ ṇ ṛ ḷ</dt><dd>A dot underneath: curl the tongue tip back to the roof of the mouth.</dd>
         <dt>th kh ph</dt><dd>A puff of air after the consonant. Never the English "th".</dd>
-        <dt>à ù ì</dt><dd>The voice starts low on that vowel, then lifts: kàr (home), pùkkh (hunger), kàṭṭ (less), chùuṭh (a lie).</dd>
+        <dt>à ù ì</dt><dd>The voice starts low on that vowel, then lifts: kàr (home), pùkkh (hunger), kàṭṭ (less), chùuṭh (a lie), tùpp (sunshine).</dd>
         <dt>-daa / -dii</dt><dd>Your lines use a man's endings. A woman swaps -daa for -dii and gayaa for gaii.</dd>
       </dl>
     </section>
@@ -384,9 +387,10 @@ body.tts .hear{display:inline-flex}
   CONVOS.forEach(function (L) {
     L.steps.forEach(function (s, i) {
       TOTAL++;
-      if (s.them) s.them.id = L.id + ':' + i + ':t';
-      if (s.answer) s.answer.id = L.id + ':' + i + ':a';
-      (s.opts || []).forEach(function (o, j) { o.id = L.id + ':' + i + ':o' + j; if (o.k === 'bad') addBad(o.name); });
+      if (s.key == null) s.key = i;
+      if (s.them) s.them.id = L.id + ':' + s.key + ':t';
+      if (s.answer) s.answer.id = L.id + ':' + s.key + ':a';
+      (s.opts || []).forEach(function (o, j) { o.id = L.id + ':' + s.key + ':o' + j; if (o.k === 'bad') addBad(o.name); });
       Object.keys(s.trapTile || {}).forEach(function (t) { addBad(s.trapTile[t].name); });
       Object.keys(s.trapSeq || {}).forEach(function (t) { addBad(s.trapSeq[t].name); });
     });
@@ -394,7 +398,8 @@ body.tts .hear{display:inline-flex}
   function foundCount() { return ALL_BAD.filter(function (n) { return store.found[n]; }).length; }
   function mainLine(s) { return s.type === 'pick' ? s.opts.filter(function (o) { return o.k === 'good'; })[0] : s.answer; }
   function mainNote(s) { return s.type === 'pick' ? mainLine(s).note : s.good; }
-  function key(L, i) { return L.id + ':' + i; }
+  function key(L, i) { return L.id + ':' + L.steps[i].key; }
+  function num(i) { return (i + 1) + '. ' + CONVOS[i].title; }
   function stepBads(s) {
     var out = [];
     (s.opts || []).forEach(function (o) { if (o.k === 'bad') out.push({ name: o.name, note: o.note, pa: o.pa }); });
@@ -678,9 +683,9 @@ body.tts .hear{display:inline-flex}
       $('#ceye').textContent = 'Conversation ' + (li + 1) + ' of ' + CONVOS.length + ' · ' + L.title;
       L.steps.forEach(function (s, i) { prog.appendChild(el('i', lessonOver || i < si ? 'on' : i === si ? 'cur' : '')); });
     } else if (mode === 'drill') {
-      $('#ceye').textContent = 'Drill · one try per line · from ' + L.title;
+      $('#ceye').textContent = 'Drill · one try per line · from ' + num(li);
     } else if (mode === 'live') {
-      $('#ceye').textContent = 'Live · ' + L.title + ' · slips ' + live.slips + ' of 3';
+      $('#ceye').textContent = 'Live · ' + num(li) + ' · slips ' + live.slips + ' of 3';
       L.steps.forEach(function (s, i) { prog.appendChild(el('i', i < si ? 'on' : i === si && live.on ? 'cur' : '')); });
     }
   }
@@ -751,7 +756,7 @@ body.tts .hear{display:inline-flex}
     say('ask', L.outro);
     feed.appendChild(missionCard(L));
     var acts = [];
-    if (li + 1 < CONVOS.length) acts.push({ label: 'Next: ' + CONVOS[li + 1].title, go: function () { startLesson(li + 1); } });
+    if (li + 1 < CONVOS.length) acts.push({ label: 'Next: ' + num(li + 1), go: function () { startLesson(li + 1); } });
     acts.push({ label: 'Run it live', go: function () { setMode('live'); } });
     acts.push({ label: 'Repeat', go: function () { startLesson(li); } });
     actions(acts);
@@ -848,7 +853,7 @@ body.tts .hear{display:inline-flex}
     } else { idle('Run over.'); say('ask', 'Three slips, so ' + L.who + ' has switched to English. Go again, or walk through it in Learn first.'); }
     renderRail();
     var acts = [{ label: 'Go again', go: function () { startLive(li); } }];
-    if (held && li + 1 < CONVOS.length) acts.unshift({ label: 'Next: ' + CONVOS[li + 1].title, go: function () { startLive(li + 1); } });
+    if (held && li + 1 < CONVOS.length) acts.unshift({ label: 'Next: ' + num(li + 1), go: function () { startLive(li + 1); } });
     acts.push({ label: 'Back to Learn', go: function () { setMode('learn'); } });
     actions(acts);
   }
@@ -863,7 +868,7 @@ body.tts .hear{display:inline-flex}
       CONVOS.forEach(function (c, i) {
         if (c.group && c.group !== lastGroup) { list.appendChild(el('div', 'grp', c.group)); }
         lastGroup = c.group;
-        var b = el('button', 'lesson'); b.type = 'button'; b.appendChild(el('span', '', c.title));
+        var b = el('button', 'lesson'); b.type = 'button'; b.appendChild(el('span', '', num(i)));
         if (mode === 'learn') {
           var p = el('span', 'pips'); c.steps.forEach(function (s, j) { p.appendChild(el('i', store.done[key(c, j)] ? 'on' : '')); }); b.appendChild(p);
         } else b.appendChild(el('small', '', store.held[c.id] ? 'held' : ''));
@@ -909,10 +914,10 @@ body.tts .hear{display:inline-flex}
     var dl = $('#chunks'); dl.textContent = '';
     CHUNKS.forEach(function (c) { dl.appendChild(el('dt', '', c[0])); var dd = el('dd', '', c[2]); dd.appendChild(el('small', '', c[1])); var hb = hearBtn({ gu: c[3] }, 'Hear it', 1); dd.appendChild(hb); dl.appendChild(dd); });
     var todo = $('#todo'); todo.textContent = '';
-    CONVOS.forEach(function (c) {
+    CONVOS.forEach(function (c, ci) {
       var lab = el('label'), cb = el('input'); cb.type = 'checkbox'; cb.id = 'todo-' + c.id; cb.checked = !!store.mission[c.id];
       cb.addEventListener('change', function () { store.mission[c.id] = cb.checked ? 1 : 0; save(); });
-      var sp = el('span'); sp.appendChild(el('small', '', c.title)); sp.appendChild(document.createTextNode(c.mission));
+      var sp = el('span'); sp.appendChild(el('small', '', num(ci))); sp.appendChild(document.createTextNode(c.mission));
       lab.appendChild(cb); lab.appendChild(sp); todo.appendChild(lab);
     });
     renderStuck();
